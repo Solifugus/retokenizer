@@ -1,0 +1,23 @@
+{
+  "name": "retokenizer",
+  "version": "1.0.0",
+  "description": "Tokenizes code according to provided syntax specification, including recursive contexts and all separators.. Also supports escapes.  Almost a grammar parser, too.. That may come in the future.",
+  "main": "retokenizer.js",
+  "scripts": {
+    "test": "node example.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Solifugus/retokenizer.git"
+  },
+  "keywords": [
+    "lexer",
+    "tokenizer"
+  ],
+  "author": "Matthew C. Tedder <matthewct@gmail.com>",
+  "license": "GPL-2.0-or-later",
+  "bugs": {
+    "url": "https://github.com/Solifugus/retokenizer/issues"
+  },
+  "homepage": "https://github.com/Solifugus/retokenizer#readme"
+}
