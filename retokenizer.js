@@ -6,6 +6,14 @@
 function retokenizer( code, syntax ) {
 	var tokens = [];
 	var token  = '';
+
+	// Push token but only if not among "removes"
+	// INTERESTING: had to add "tokens" to params because function referenced version for last recursion into retokenizer
+	this.pushToken = function pushToken( token, tokens, syntax ) {
+		if( typeof token === 'string' && typeof syntax.removes === undefined ) { tokens.push( token ); }
+		else if( syntax.removes.indexOf(token) === -1 ) { tokens.push( token ); }
+	}
+
 	for( var i = 0; i < code.length; i += 1 ) {
 		var skipToNextChar;
 
@@ -15,14 +23,14 @@ function retokenizer( code, syntax ) {
 			var enclosure = syntax.enclosures[ii];
 			if( code.substr(i,enclosure.opener.length) === enclosure.opener ) {
 				if( token !== '' ) {
-					tokens.push( token );
+					this.pushToken( token, tokens, syntax );
 					token = '';
 				}
-				tokens.push( enclosure.opener );
+				this.pushToken( enclosure.opener, tokens, syntax );
 				
 				// If no closer, Get All to End as a single token
 				if( enclosure.closer === undefined || enclosure.closer === '' ) {
-					tokens.push( code.substr(i+1) );
+					this.pushToken( code.substr(i+1), tokens, syntax );
 					i = code.length;
 					break;
 				}
@@ -33,7 +41,7 @@ function retokenizer( code, syntax ) {
 
 					// End of code without finding enclosed closer?  Then break out..
 					if( i >= code.length ) {
-						if( token !== '' ) tokens.push( token );
+						if( token !== '' ) this.pushToken( token, tokens, syntax );
 						token = '';
 						break; 
 					}
@@ -62,10 +70,10 @@ function retokenizer( code, syntax ) {
 								token = retokenizer(token,enclosure.syntax);
 							}
 							// Store enclosure and move on..
-							tokens.push(token);
+							this.pushToken( token, tokens, syntax );
 							token = '';
 						}
-						tokens.push( enclosure.closer );
+						this.pushToken( enclosure.closer, tokens, syntax );
 						i += enclosure.closer.length;
 						break;
 					}
@@ -86,10 +94,10 @@ function retokenizer( code, syntax ) {
 				let found = rgx.exec( code.substr(i) );
 				if( found !== null ) {
 					if( token !== '' ) {
-						tokens.push( token );
+						this.pushToken( token, tokens, syntax );
 						token = '';
 					}
-					tokens.push( found[0] );
+					this.pushToken( found[0], tokens, syntax );
 					i += found[0].length-1;
 					skipToNextChar = true;
 					break;
@@ -98,10 +106,10 @@ function retokenizer( code, syntax ) {
 			// If splitter is literal string
 			else if( code.substr(i,splitter.length) === splitter ) {
 				if( token !== '' ) {
-					tokens.push( token );
+					this.pushToken( token, tokens, syntax );
 					token = '';
 				}
-				tokens.push( splitter );
+				this.pushToken( splitter, tokens, syntax );
 				i += splitter.length-1;
 				skipToNextChar = true;
 				break;
@@ -112,9 +120,11 @@ function retokenizer( code, syntax ) {
 		if( i < code.length ) token += code[i];
 	}  // end of code (i) loop
 
-	if( token !== '' ) tokens.push( token );
+	if( token !== '' ) this.pushToken( token, tokens, syntax );
 
 	return tokens;
+
 }  // end of retokenizer
+
 
 module.exports = retokenizer;
