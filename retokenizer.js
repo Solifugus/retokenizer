@@ -79,7 +79,24 @@ function retokenizer( code, syntax ) {
 		skipToNextChar = false;
 		for( var ii = 0; ii < syntax.splitters.length; ii += 1 ) {
 			var splitter = syntax.splitters[ii];
-			if( code.substr(i,splitter.length) === splitter ) {
+			// If splitter is Regular Expresson string
+			if( splitter.length > 2 && splitter[0] === '/' && splitter[splitter.length-1] === '/' ) {
+				let str = '^' + splitter.substring(1,splitter.length-1);	
+				let rgx = RegExp(str);	
+				let found = rgx.exec( code.substr(i) );
+				if( found !== null ) {
+					if( token !== '' ) {
+						tokens.push( token );
+						token = '';
+					}
+					tokens.push( found[0] );
+					i += found[0].length-1;
+					skipToNextChar = true;
+					break;
+				}
+			}
+			// If splitter is literal string
+			else if( code.substr(i,splitter.length) === splitter ) {
 				if( token !== '' ) {
 					tokens.push( token );
 					token = '';
