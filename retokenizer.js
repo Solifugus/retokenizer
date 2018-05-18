@@ -88,8 +88,8 @@ function retokenizer( code, syntax ) {
 		for( var ii = 0; ii < syntax.splitters.length; ii += 1 ) {
 			var splitter = syntax.splitters[ii];
 			// If splitter is Regular Expresson string
-			if( splitter.length > 2 && splitter[0] === '/' && splitter[splitter.length-1] === '/' ) {
-				let str = '^' + splitter.substring(1,splitter.length-1);	
+			if( typeof splitter === 'object' && splitter.regex !== undefined ) {
+				let str = '^' + splitter.regex;	
 				let rgx = RegExp(str);	
 				let found = rgx.exec( code.substr(i) );
 				if( found !== null ) {
