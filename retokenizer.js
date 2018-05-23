@@ -8,6 +8,7 @@ function retokenizer( code, syntax ) {
 	var token  = '';
 
 	// Push token but only if not among "removes"
+	if( syntax.removes === undefined ) syntax.removes = [];
 	// INTERESTING: had to add "tokens" to params because function referenced version for last recursion into retokenizer
 	this.pushToken = function pushToken( token, tokens, syntax ) {
 		if( typeof token === 'string' && typeof syntax.removes === undefined ) { tokens.push( token ); }
@@ -103,7 +104,7 @@ function retokenizer( code, syntax ) {
 					break;
 				}
 			}
-			// If splitter is literal string
+			// If splitter is litteral string
 			else if( code.substr(i,splitter.length) === splitter ) {
 				if( token !== '' ) {
 					this.pushToken( token, tokens, syntax );
