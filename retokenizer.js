@@ -3,51 +3,45 @@
 // Copyright Matthew C. Tedder
 // LICENSED UNDER The GNU GPL Version 2 (See included LICENSE file)
 
+var lineNo;
 function retokenizer( code, syntax, rich = false ) {
 	var tokens = [];
 	var token  = '';
+	lineNo     = 1;
 
 	// Push token but only if not among "removes"
 	if( syntax.removes === undefined ) syntax.removes = [];
-	this.pushToken = function pushToken( token, tokens, syntax ) {
-		if( typeof token === 'string' ) {
-			// If in removes, do not push token
-			if( syntax.removes !== undefined && syntax.removes.indexOf(token) !== -1 ) {
-				return; 
-			} 
-
-			// If rich mode, ensure token is in object form
-			if( rich && typeof token === 'string' ) token = { type:'litteral', value:token };
-
-			// Add rich stuff to token before pushing..
-			if( rich ) {
-				let lineNo = 0;
-				console.log( 'CODE: ' + code );
-				token.lineNo = lineNo;
-			}
+	this.pushToken = function pushToken( token, tokens, syntax, rich ) {
+		// Count lines passing through
+		for( var c = 0; c < token.value.length; c += 1 ) {
+			if( token.value[c] === '\n' ) lineNo += 1;
 		}
+		token.lineNo = lineNo;
 
-		// Now push the token..
-		tokens.push( token );
+		// If token value is in removes, do not push 
+		if( syntax.removes !== undefined && syntax.removes.indexOf(token.value) !== -1 ) return; 
+
+		// Push the token..
+		if( rich ) { tokens.push( token ); } else { tokens.push(token.value); }
 	}
 
 	for( var i = 0; i < code.length; i += 1 ) {
 		var skipToNextChar;
-
+		
 		// Closure openned?
 		skipToNextChar = false;
 		for( var ii = 0; ii < syntax.enclosures.length; ii += 1 ) {
 			var enclosure = syntax.enclosures[ii];
 			if( code.substr(i,enclosure.opener.length) === enclosure.opener ) {
 				if( token !== '' ) {
-					this.pushToken( (rich ? { type:'string', value:token } : token), tokens, syntax );
+					this.pushToken(  {type:'string', value:token}, tokens, syntax, rich );
 					token = '';
 				}
-				this.pushToken( (rich ? { type:'opener', value:enclosure.opener } : enclosure.opener), tokens, syntax );
+				this.pushToken( {type:'opener', value:enclosure.opener}, tokens, syntax, rich );
 				
 				// If no closer, Get All to End as a single token
 				if( enclosure.closer === undefined || enclosure.closer === '' ) {
-					this.pushToken( (rich ? { type:'unclosable', value:code.substr(i+1)} : code.substr(i+1)), tokens, syntax );
+					this.pushToken( {type:'unclosable', value:code.substr(i+1)}, tokens, syntax, rich );
 					i = code.length;
 					break;
 				}
@@ -58,7 +52,7 @@ function retokenizer( code, syntax, rich = false ) {
 
 					// End of code without finding enclosed closer?  Then break out..
 					if( i >= code.length ) {
-						if( token !== '' ) this.pushToken( (rich ? {type:'unclosed',value:token} : token), tokens, syntax );
+						if( token !== '' ) this.pushToken( {type:'unclosed',value:token}, tokens, syntax, rich );
 						token = '';
 						break; 
 					}
@@ -87,10 +81,10 @@ function retokenizer( code, syntax, rich = false ) {
 								token = retokenizer( token,enclosure.syntax, rich );
 							}
 							// Store enclosure and move on.. TODO: if labelled, change type to label
-							this.pushToken( (rich ? {type:'enclosed', value:token} : token), tokens, syntax );
+							this.pushToken( {type:'enclosed', value:token}, tokens, syntax, rich );
 							token = '';
 						}
-						this.pushToken( (rich ? {type:'closer', value:enclosure.closer} : enclosure.closer), tokens, syntax );
+						this.pushToken( {type:'closer', value:enclosure.closer}, tokens, syntax, rich );
 						i += enclosure.closer.length;  // BUG
 						break;
 					}
@@ -111,11 +105,11 @@ function retokenizer( code, syntax, rich = false ) {
 				let found = rgx.exec( code.substr(i) );
 				if( found !== null ) {
 					if( token !== '' ) {
-						this.pushToken( (rich ? {type:'string', value:token} : token), tokens, syntax );
+						this.pushToken( {type:'string', value:token}, tokens, syntax, rich );
 						token = '';
 					}
 					let tokenType = splitter.type === undefined ? 'regex' : splitter.type;
-					this.pushToken( (rich ? {type:tokenType, value:found[0]} : found[0]), tokens, syntax );
+					this.pushToken( {type:tokenType, value:found[0]}, tokens, syntax, rich );
 					token = '';
 					i += found[0].length-1;
 					skipToNextChar = true;
@@ -125,10 +119,10 @@ function retokenizer( code, syntax, rich = false ) {
 			// If splitter is litteral string
 			else if( code.substr(i,splitter.length) === splitter ) {
 				if( token !== '' ) {
-					this.pushToken( (rich ? {type:'string', value:token} : token), tokens, syntax );
+					this.pushToken( {type:'string', value:token}, tokens, syntax, rich );
 					token = '';
 				}
-				this.pushToken( (rich ? {type:'splitter', value:splitter} : splitter), tokens, syntax );
+				this.pushToken( {type:'splitter', value:splitter}, tokens, syntax, rich );
 				i += splitter.length-1;
 				skipToNextChar = true;
 				break;
@@ -139,7 +133,7 @@ function retokenizer( code, syntax, rich = false ) {
 		if( i < code.length ) token += code[i];
 	}  // end of code (i) loop
 
-	if( token !== '' ) this.pushToken( (rich ? {type:'string', value:token} : token), tokens, syntax );
+	if( token !== '' ) this.pushToken( {type:'string', value:token}, tokens, syntax, rich );
 
 	return tokens;
 
