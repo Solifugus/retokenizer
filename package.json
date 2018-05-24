@@ -1,6 +1,6 @@
 {
   "name": "retokenizer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Tokenizes code according to provided syntax specification, including recursive contexts and all separators.. Also supports escapes.  Almost a grammar parser, too.. That may come in the future.",
   "main": "retokenizer.js",
   "scripts": {
