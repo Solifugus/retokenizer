@@ -30,6 +30,7 @@ function retokenizer( code, syntax, rich = false ) {
 		
 		// Closure openned?
 		skipToNextChar = false;
+		if( syntax.enclosures === undefined ) syntax.enclosures = [];
 		for( var ii = 0; ii < syntax.enclosures.length; ii += 1 ) {
 			var enclosure = syntax.enclosures[ii];
 			if( code.substr(i,enclosure.opener.length) === enclosure.opener ) {
