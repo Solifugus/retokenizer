@@ -29,7 +29,7 @@ function retokenizer( code, syntax, rich = false ) {
 
 	for( var i = 0; i < code.length; i += 1 ) {
 		var skipToNextChar;
-		
+
 		// Closure openned?
 		skipToNextChar = false;
 		if( syntax.enclosures === undefined ) syntax.enclosures = [];
@@ -91,12 +91,13 @@ function retokenizer( code, syntax, rich = false ) {
 							token = '';
 						}
 						this.pushToken( {type:'closer', value:enclosure.closer}, tokens, syntax, rich );
-						i += enclosure.closer.length;  // BUG
+						i += enclosure.closer.length - 1;  // BUG
+						ii = syntax.enclosures.length;  // don't check for more enclosure matches until next character in code
 						break;
 					}
 					token += code[i];
-				}					
-			}
+				} // end of while( true )					
+			} // end of enclosure capturing if..
 		}
 		if( skipToNextChar ) continue;
 
