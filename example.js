@@ -8,6 +8,7 @@ syntax = {
 	removes:[' ','\t'],
 	enclosures:[
 		{
+			label:'comment',
 			opener:'/*',
 			closer:'*/'
 		},

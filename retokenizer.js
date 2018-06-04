@@ -1,5 +1,5 @@
 
-// reTokenizer 1.0
+// reTokenizer 1.0  *** NOTE: add that if an enclosure is labelled then it will exclude open/closer and so label enclosed ***
 // Copyright Matthew C. Tedder
 // LICENSED UNDER The GNU GPL Version 2 (See included LICENSE file)
 
@@ -35,19 +35,23 @@ function retokenizer( code, syntax, rich = false ) {
 		if( syntax.enclosures === undefined ) syntax.enclosures = [];
 		for( var ii = 0; ii < syntax.enclosures.length; ii += 1 ) {
 			var enclosure = syntax.enclosures[ii];
+			var captured  = {};
 			if( code.substr(i,enclosure.opener.length) === enclosure.opener ) {
 				if( token !== '' ) {
-					this.pushToken(  {type:'string', value:token}, tokens, syntax, rich );
+					this.pushToken(  { type:'string', value:token }, tokens, syntax, rich );
 					token = '';
 				}
-				this.pushToken( {type:'opener', value:enclosure.opener}, tokens, syntax, rich );
+				captured.label  = enclosure.label;
+				captured.opener = { type:'opener', value:enclosure.opener }; 
 
 				// Ensure position in code moved to after full length of the opener
 				i += enclosure.opener.length - 1;
 				
 				// If no closer, Get All to End as a single token
 				if( enclosure.closer === undefined || enclosure.closer === '' ) {
-					this.pushToken( {type:'unclosable', value:code.substr(i+1)}, tokens, syntax, rich );
+					let type = enclosure.label === undefined ? 'unclosable' : enclosure.label;
+					//this.pushToken( { type:type, value:code.substr(i+1) }, tokens, syntax, rich );
+					captured.enclosed = { type:type, value:code.substr(i+1) }; 
 					i = code.length;
 					break;
 				}
@@ -58,7 +62,8 @@ function retokenizer( code, syntax, rich = false ) {
 
 					// End of code without finding enclosed closer?  Then break out..
 					if( i >= code.length ) {
-						if( token !== '' ) this.pushToken( {type:'unclosed',value:token}, tokens, syntax, rich );
+						let type = enclosure.label === undefined ? 'unclosed' : enclosure.label;
+						captured.enclosed = { type:type, value:token };
 						token = '';
 						break; 
 					}
@@ -87,17 +92,27 @@ function retokenizer( code, syntax, rich = false ) {
 								token = retokenizer( token,enclosure.syntax, rich );
 							}
 							// Store enclosure and move on.. TODO: if labelled, change type to label
-							this.pushToken( {type:'enclosed', value:token}, tokens, syntax, rich );
+							let type = enclosure.label === undefined ? 'enclosed' : enclosure.label;
+							captured.enclosed = { type:type, value:token };
 							token = '';
 						}
-						this.pushToken( {type:'closer', value:enclosure.closer}, tokens, syntax, rich );
-						i += enclosure.closer.length - 1;  // BUG
+						captured.closer = { type:'closer', value:enclosure.closer };
+						i += enclosure.closer.length - 1; 
 						ii = syntax.enclosures.length;  // don't check for more enclosure matches until next character in code
 						break;
 					}
 					token += code[i];
 				} // end of while( true )					
 			} // end of enclosure capturing if..
+			if( captured.opener !== undefined ) {
+				if( rich && captured.label !== undefined ) { this.pushToken( captured.enclosed, tokens, syntax, rich ); }
+				else {
+					this.pushToken( captured.opener, tokens, syntax, rich );
+					this.pushToken( captured.enclosed, tokens, syntax, rich );
+					if( captured.closer !== undefined ) this.pushToken( captured.closer, tokens, syntax, rich );
+				}
+				i += 1;  // Not sure why this works.. 
+			}
 		}
 		if( skipToNextChar ) continue;
 
