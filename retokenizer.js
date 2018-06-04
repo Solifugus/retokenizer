@@ -5,6 +5,8 @@
 
 var lineNo;
 function retokenizer( code, syntax, rich = false ) {
+	if( typeof code !== 'string') { console.error('Retokenizer ERROR: code not given as a string.'); return; }
+	if( typeof syntax !== 'object') { console.error('Retokenizer ERROR: syntax not given as an object.'); return; }
 	var tokens = [];
 	var token  = '';
 	lineNo     = 1;
@@ -39,6 +41,9 @@ function retokenizer( code, syntax, rich = false ) {
 					token = '';
 				}
 				this.pushToken( {type:'opener', value:enclosure.opener}, tokens, syntax, rich );
+
+				// Ensure position in code moved to after full length of the opener
+				i += enclosure.opener.length - 1;
 				
 				// If no closer, Get All to End as a single token
 				if( enclosure.closer === undefined || enclosure.closer === '' ) {
@@ -59,7 +64,7 @@ function retokenizer( code, syntax, rich = false ) {
 					}
 
 					// Found escaper?  Then translate..
-					if( code.substr(i,enclosure.escaper.length) === enclosure.escaper ) {
+					if( enclosure.escaper !== undefined && code.substr(i,enclosure.escaper.length) === enclosure.escaper ) {
 						if( code.substr(i+enclosure.escaper.length,enclosure.escaper.length) === enclosure.escaper ) {
 							// escape was escaped 
 							token += enclosure.escaper;
