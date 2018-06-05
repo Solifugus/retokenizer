@@ -111,7 +111,8 @@ function retokenizer( code, syntax, rich = false ) {
 					this.pushToken( captured.enclosed, tokens, syntax, rich );
 					if( captured.closer !== undefined ) this.pushToken( captured.closer, tokens, syntax, rich );
 				}
-				i += 1;  // Not sure why this works.. 
+				//i += 1;  // Not sure why this works.. 
+				skipToNextChar = true;
 			}
 		}
 		if( skipToNextChar ) continue;
