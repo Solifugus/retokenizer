@@ -1,0 +1,6 @@
+
+To Do Items:
+	[ ] Change "rich" parameter to "options", an object of which one attribute is "rich"
+	[ ] Add option to condense enclosures from 3 to 1 token output; adding "opener" and "closer" into the "enclosed" token
+	[ ] Add ability to label enclosure types, instead of calling simply "enclosure" -- did I do this already?
+
