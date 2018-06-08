@@ -13,11 +13,14 @@ syntax = {
 			closer:'*/'
 		},
 		{
-			opener:'(',	escaper:'\\', closer:')',
+			label:'condition',
+			opener:'(',
+			escaper:'\\',
+			closer:')',
 			syntax:{
 				splitters:[' ','and','or','not','>=','>','<=','<=','<','=','+','-','*','/',{type:'number',regex:'[0-9]+'}],
 			removes:[' ','\t'],
-				enclosures:[{ opener:'"', 'escape':'\\', closer:'"' }]
+				enclosures:[{ label:'string', opener:'"', 'escape':'\\', closer:'"' }]
 			}
 		}
 	]
@@ -33,6 +36,6 @@ console.log( JSON.stringify(tokens,null,'  ') );
 
 // All tokens are turned into objects with line numbers added -- future versions of retokenizer may add more attributes
 console.log( '\n--------------------\nRich tokens (default):\n' )
-tokens = tokenizer( code, syntax, true );
+tokens = tokenizer( code, syntax, { rich:true, condense:true } );
 console.log( JSON.stringify(tokens,null,'  ') );
 

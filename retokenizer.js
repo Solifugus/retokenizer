@@ -1,30 +1,52 @@
 
-// reTokenizer 1.0  *** NOTE: add that if an enclosure is labelled then it will exclude open/closer and so label enclosed ***
+// reTokenizer 
 // Copyright Matthew C. Tedder
 // LICENSED UNDER The GNU GPL Version 2 (See included LICENSE file)
 
+/* Options:
+ *    rich
+ *        = false (default), return tokens as simple strings
+ *        = true, return tokens as richly detailed objects
+ *    betweens
+ *        = 'keep', return tokens of strings found between splitters.
+ *        = 'remove', do not return tokens of strings found between splitter.
+ *        = 'throw', throw an error for any strings found between splitters.
+ *    condense
+ *        = false (default), return three tokens for each enclosure (opener, enclosed, and closer)
+ *        = true, return one token for each enclosure (adding opener and closer attributes to enclosed token, if rich)
+ */
+
+// BUG -- When enclosure given a label, won't condense...
+
 var lineNo;
-function retokenizer( code, syntax, rich = false ) {
+function retokenizer( code, syntax, option = {} ) {
 	if( typeof code !== 'string') { console.error('Retokenizer ERROR: code not given as a string.'); return; }
 	if( typeof syntax !== 'object') { console.error('Retokenizer ERROR: syntax not given as an object.'); return; }
+	if( option.rich === undefined )     option.rich     = false;
+	if( option.betweens === undefined ) option.betweens = 'keep';  // 'keep', 'remove', or 'throw'
+	if( option.condense === undefined ) option.condense = false;
 	var tokens = [];
 	var token  = '';
 	lineNo     = 1;
 
 	// Push token but only if not among "removes"
 	if( syntax.removes === undefined ) syntax.removes = [];
-	this.pushToken = function pushToken( token, tokens, syntax, rich ) {
+	this.pushToken = function pushToken( token, tokens, syntax, option ) {
 		// Count lines passing through
-		for( var c = 0; c < token.value.length; c += 1 ) {
-			if( token.value[c] === '\n' ) lineNo += 1;
-		}
+		if( !Array.isArray(token.value) ) lineNo += (token.value.match(/\n/g) || []).length;
+		if( token.opener !== undefined )  lineNo += (token.opener.match(/\n/g) || []).length;
+		if( token.closer !== undefined )  lineNo += (token.closer.match(/\n/g) || []).length;
 		token.lineNo = lineNo;
 
 		// If token value is in removes, do not push 
 		if( syntax.removes !== undefined && syntax.removes.indexOf(token.value) !== -1 ) return; 
 
-		// Push the token..
-		if( rich ) { tokens.push( token ); } else { tokens.push(token.value); }
+		// Keep (default), remove, or throw error on betweens found?
+		if( token.type === 'between' && option.betweens.toLowerCase() === 'throw' ) throw 'Unrecognized Syntax "' + token.value + '" at lineNo ' + lineNo + '.';
+		if( token.type === 'between' && option.betweens.toLowerCase() === 'remove' ) return;
+
+		// Else push the token..  Goal!  Score!
+		if( option.rich ) { tokens.push( token ); } else { tokens.push(token.value); }
 	}
 
 	for( var i = 0; i < code.length; i += 1 ) {
@@ -38,7 +60,7 @@ function retokenizer( code, syntax, rich = false ) {
 			var captured  = {};
 			if( code.substr(i,enclosure.opener.length) === enclosure.opener ) {
 				if( token !== '' ) {
-					this.pushToken(  { type:'string', value:token }, tokens, syntax, rich );
+					this.pushToken(  { type:'string', value:token }, tokens, syntax, option );
 					token = '';
 				}
 				captured.label  = enclosure.label;
@@ -50,7 +72,6 @@ function retokenizer( code, syntax, rich = false ) {
 				// If no closer, Get All to End as a single token
 				if( enclosure.closer === undefined || enclosure.closer === '' ) {
 					let type = enclosure.label === undefined ? 'unclosable' : enclosure.label;
-					//this.pushToken( { type:type, value:code.substr(i+1) }, tokens, syntax, rich );
 					captured.enclosed = { type:type, value:code.substr(i+1) }; 
 					i = code.length;
 					break;
@@ -89,11 +110,11 @@ function retokenizer( code, syntax, rich = false ) {
 						if( token !== '' ) {
 							// If syntax given for the enclosure then convert to tokens
 							if( enclosure.syntax !== undefined ) {
-								token = retokenizer( token,enclosure.syntax, rich );
+								token = retokenizer( token,enclosure.syntax, option );
 							}
-							// Store enclosure and move on.. TODO: if labelled, change type to label
+							// Store enclosure and move on (changing type to label, if provided).. 
 							let type = enclosure.label === undefined ? 'enclosed' : enclosure.label;
-							captured.enclosed = { type:type, value:token };
+							captured.enclosed = { type:type, enclosed:true, value:token };
 							token = '';
 						}
 						captured.closer = { type:'closer', value:enclosure.closer };
@@ -105,13 +126,19 @@ function retokenizer( code, syntax, rich = false ) {
 				} // end of while( true )					
 			} // end of enclosure capturing if..
 			if( captured.opener !== undefined ) {
-				if( rich && captured.label !== undefined ) { this.pushToken( captured.enclosed, tokens, syntax, rich ); }
+				if( !option.rich || captured.label !== undefined ) { this.pushToken( captured.enclosed, tokens, syntax, option ); }
 				else {
-					this.pushToken( captured.opener, tokens, syntax, rich );
-					this.pushToken( captured.enclosed, tokens, syntax, rich );
-					if( captured.closer !== undefined ) this.pushToken( captured.closer, tokens, syntax, rich );
+					if( option.condense ) {
+						let condensed = { type:captured.enclosed.type, enclosed:true, opener:captured.opener.value, value:captured.enclosed.value };
+						if( captured.closer !== undefined ) condensed.closer = captured.closer.value;
+						this.pushToken( condensed, tokens, syntax, option );
+					}
+					else {
+						this.pushToken( captured.opener, tokens, syntax, option );
+						this.pushToken( captured.enclosed, tokens, syntax, option );
+						if( captured.closer !== undefined ) this.pushToken( captured.closer, tokens, syntax, option );
+					}
 				}
-				//i += 1;  // Not sure why this works.. 
 				skipToNextChar = true;
 			}
 		}
@@ -128,11 +155,11 @@ function retokenizer( code, syntax, rich = false ) {
 				let found = rgx.exec( code.substr(i) );
 				if( found !== null ) {
 					if( token !== '' ) {
-						this.pushToken( {type:'string', value:token}, tokens, syntax, rich );
+						this.pushToken( {type:'string', value:token}, tokens, syntax, option );
 						token = '';
 					}
 					let tokenType = splitter.type === undefined ? 'regex' : splitter.type;
-					this.pushToken( {type:tokenType, value:found[0]}, tokens, syntax, rich );
+					this.pushToken( {type:tokenType, value:found[0]}, tokens, syntax, option );
 					token = '';
 					i += found[0].length-1;
 					skipToNextChar = true;
@@ -142,10 +169,10 @@ function retokenizer( code, syntax, rich = false ) {
 			// If splitter is litteral string
 			else if( code.substr(i,splitter.length) === splitter ) {
 				if( token !== '' ) {
-					this.pushToken( {type:'string', value:token}, tokens, syntax, rich );
+					this.pushToken( {type:'between', value:token}, tokens, syntax, option );
 					token = '';
 				}
-				this.pushToken( {type:'splitter', value:splitter}, tokens, syntax, rich );
+				this.pushToken( {type:'splitter', value:splitter}, tokens, syntax, option );
 				i += splitter.length-1;
 				skipToNextChar = true;
 				break;
@@ -156,7 +183,7 @@ function retokenizer( code, syntax, rich = false ) {
 		if( i < code.length ) token += code[i];
 	}  // end of code (i) loop
 
-	if( token !== '' ) this.pushToken( {type:'string', value:token}, tokens, syntax, rich );
+	if( token !== '' ) this.pushToken( {type:'between', value:token}, tokens, syntax, option );
 
 	return tokens;
 
