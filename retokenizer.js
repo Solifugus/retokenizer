@@ -14,6 +14,9 @@
  *    condense
  *        = false (default), return three tokens for each enclosure (opener, enclosed, and closer)
  *        = true, return one token for each enclosure (adding opener and closer attributes to enclosed token, if rich)
+ *    caseful
+ *        = false (default), splitters are caseless
+ *        = false, splitters are caseful
  */
 
 // BUG -- When enclosure given a label, won't condense...
@@ -22,9 +25,11 @@ var lineNo;
 function retokenizer( code, syntax, option = {} ) {
 	if( typeof code !== 'string') { console.error('Retokenizer ERROR: code not given as a string.'); return; }
 	if( typeof syntax !== 'object') { console.error('Retokenizer ERROR: syntax not given as an object.'); return; }
+	if( syntax.splitters === undefined ) { syntax.splitters = []; } else { syntax.splitters.sort(function(a,b){ return b.length - a.length; }); }
 	if( option.rich === undefined )     option.rich     = false;
 	if( option.betweens === undefined ) option.betweens = 'keep';  // 'keep', 'remove', or 'throw'
 	if( option.condense === undefined ) option.condense = false;
+	if( option.caseful === undefined ) option.caseful   = false;   // caselessly match splitters
 	var tokens = [];
 	var token  = '';
 	lineNo     = 1;
@@ -167,7 +172,7 @@ function retokenizer( code, syntax, option = {} ) {
 				}
 			}
 			// If splitter is litteral string
-			else if( code.substr(i,splitter.length) === splitter ) {
+			else if( (option.caseful && code.substr(i,splitter.length) === splitter) || (!option.caseful && code.substr(i,splitter.length).toLowerCase() === splitter.toLowerCase()) ) {
 				if( token !== '' ) {
 					this.pushToken( {type:'between', value:token}, tokens, syntax, option );
 					token = '';
