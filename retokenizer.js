@@ -131,18 +131,15 @@ function retokenizer( code, syntax, option = {} ) {
 				} // end of while( true )					
 			} // end of enclosure capturing if..
 			if( captured.opener !== undefined ) {
-				if( !option.rich || captured.label !== undefined ) { this.pushToken( captured.enclosed, tokens, syntax, option ); }
+				if( option.condense ) {
+					let condensed = { type:captured.enclosed.type, enclosed:true, opener:captured.opener.value, value:captured.enclosed.value };
+					if( captured.closer !== undefined ) condensed.closer = captured.closer.value;
+					this.pushToken( condensed, tokens, syntax, option );
+				}
 				else {
-					if( option.condense ) {
-						let condensed = { type:captured.enclosed.type, enclosed:true, opener:captured.opener.value, value:captured.enclosed.value };
-						if( captured.closer !== undefined ) condensed.closer = captured.closer.value;
-						this.pushToken( condensed, tokens, syntax, option );
-					}
-					else {
-						this.pushToken( captured.opener, tokens, syntax, option );
-						this.pushToken( captured.enclosed, tokens, syntax, option );
-						if( captured.closer !== undefined ) this.pushToken( captured.closer, tokens, syntax, option );
-					}
+					this.pushToken( captured.opener, tokens, syntax, option );
+					this.pushToken( captured.enclosed, tokens, syntax, option );
+					if( captured.closer !== undefined ) this.pushToken( captured.closer, tokens, syntax, option );
 				}
 				skipToNextChar = true;
 			}
