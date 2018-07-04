@@ -23,8 +23,8 @@
 
 var lineNo;
 function retokenizer( code, syntax, option = {} ) {
-	if( typeof code !== 'string') { console.error('Retokenizer ERROR: code not given as a string.'); return; }
-	if( typeof syntax !== 'object') { console.error('Retokenizer ERROR: syntax not given as an object.'); return; }
+	if( typeof code !== 'string') { console.error('Retokenizer ERROR: code not given as a string but rather: ' + JSON.stringify(code)); return; }
+	if( typeof syntax !== 'object') { console.error('Retokenizer ERROR: syntax not given as an object but rather: ' + JSON.stringify(code)); return; }
 	if( syntax.splitters === undefined ) { syntax.splitters = []; } else { syntax.splitters.sort(function(a,b){ return b.length - a.length; }); }
 	if( option.rich === undefined )     option.rich     = false;
 	if( option.betweens === undefined ) option.betweens = 'keep';  // 'keep', 'remove', or 'throw'
