@@ -63,7 +63,7 @@ function retokenizer( code, syntax, option = {} ) {
 		for( var ii = 0; ii < syntax.enclosures.length; ii += 1 ) {
 			var enclosure = syntax.enclosures[ii];
 			var captured  = {};
-			if( code.substr(i,enclosure.opener.length) === enclosure.opener ) {
+			if( code.substr(i,enclosure.opener.length).toLowerCase() === enclosure.opener.toLowerCase() ) {
 				if( token !== '' ) {
 					this.pushToken(  { type:'string', value:token }, tokens, syntax, option );
 					token = '';
