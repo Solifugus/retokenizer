@@ -102,7 +102,7 @@ function retokenizer( code, syntax, option = {} ) {
 							i += enclosure.escaper.length + enclosure.escaper.length - 1;
 							continue;
 						}
-						else if( code.substr(i+enclosure.escaper.length,enclosure.closer.length) === enclosure.closer ) {
+						else if( code.substr(i+enclosure.escaper.length,enclosure.closer.length).toLowerCase() === enclosure.closer.toLowerCase() ) {
 							// enclosure's closer was escaped
 							token += enclosure.closer;
 							i += enclosure.escaper.length + enclosure.closer.length - 1;
@@ -111,7 +111,7 @@ function retokenizer( code, syntax, option = {} ) {
 					}
 
 					// Found closer of enclosure?
-					if( code.substr(i,enclosure.closer.length) === enclosure.closer ) {
+					if( code.substr(i,enclosure.closer.length).toLowerCase() === enclosure.closer.toLowerCase() ) {
 						if( token !== '' ) {
 							// If syntax given for the enclosure then convert to tokens
 							if( enclosure.syntax !== undefined ) {
