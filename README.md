@@ -2,7 +2,7 @@
 
 Retokenzier Version 1.0
 Copyright (C) 2018 By Matthew C. Tedder
-Licensed under the GNU GPL Version 2 (See LICENSE file)
+Licensed under the MIT license (See LICENSE file)
 
 DESCRIPTION
 

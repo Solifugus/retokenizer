@@ -1,6 +1,39 @@
 
 To Do Items:
-	[ ] Change "rich" parameter to "options", an object of which one attribute is "rich"
-	[ ] Add option to condense enclosures from 3 to 1 token output; adding "opener" and "closer" into the "enclosed" token
-	[ ] Add ability to label enclosure types, instead of calling simply "enclosure" -- did I do this already?
+
+--------------
+Grammar Parser
+
+A different notation is necessary for grammar parsing. Each segment is named
+and defined to return with its name and each consituent part.
+
+	// Phrases are identified in order..
+	phrases = [
+		{ name:'abc', segments:[], function:function(){..} },
+		..
+	]
+
+	name     = // string identifier for phrase
+
+	segments = [ '', [], ]
+
+		-- 1 mandatory? 0 allowed? 1+ allowed?
+		-- name each..
+		'string'   -- accept any so named phrase (first) or token (second)
+		[segments] -- accept any of specified segments
+
+		{'name':[segments]}
+
+	function = // function given scope common to phrases
+
+	segments = [
+		{ name:'stmt', constituents:[ 'input', iexpr ], function:{} },
+		{ name:'stmt', constituents:[ 'output', oexpr ], function:{} },
+		{ name:'..', constituents:[], function:{} },
+	];
+
+
+
+
+
 

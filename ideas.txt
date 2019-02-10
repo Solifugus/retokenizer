@@ -1,0 +1,35 @@
+
+===============================================================================
+Languages
+
+----
+BURP -- Variable Consultant 
+
+	The aim of this language is as a minimal iostream processor between
+resources.  The minimum base resources of variables and network sockets. 
+
+A program is a variable is a function that receives from an input stream and
+outputs to an output stream, as mediated by conditions.  
+
+
+Overview
+	Data streams of visible textual data flow in from and out to external
+variables.  These streams contain two types of data: 
+	subject data: to be used/modified by operations,
+	control data: parameters/results of operations.
+
+	Istream 
+		Each moment, Istream is assigned whatever visible text has been 
+		received from external entities, and the status of Istream connections.
+	Memory
+		Any value assigned to memory may thereafter be read unaltered from
+		how it was last assigned.
+	Ostream
+		At the end of each moment, values written to Ostream are sent to 
+		relevant external entities and then cleared to defaults.
+		
+
+Repetition of Moments:
+	(1) Visible text flows in, forming the moment's Input.
+	(2) Where output conditions are matched in Input, Internal, and/or Output,
+        trigger assignments to Internal and/or Output. 

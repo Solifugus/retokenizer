@@ -15,7 +15,7 @@
     "tokenizer"
   ],
   "author": "Matthew C. Tedder <matthewct@gmail.com>",
-  "license": "GPL-2.0-or-later",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/Solifugus/retokenizer/issues"
   },
