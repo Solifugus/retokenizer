@@ -113,16 +113,17 @@ function retokenizer( code, syntax, option = {} ) {
 
 					// Found closer of enclosure?
 					if( code.substr(i,enclosure.closer.length).toLowerCase() === enclosure.closer.toLowerCase() ) {
+						let enclosureType = enclosure.label === undefined ? 'enclosed' : enclosure.label;
 						if( token !== '' ) {
 							// If syntax given for the enclosure then convert to tokens
 							if( enclosure.syntax !== undefined ) {
-								token = retokenizer( token,enclosure.syntax, option );
+								token = retokenizer( token, enclosure.syntax, option );
 							}
 							// Store enclosure and move on (changing type to label, if provided).. 
-							let type = enclosure.label === undefined ? 'enclosed' : enclosure.label;
-							captured.enclosed = { type:type, enclosed:true, value:token };
+							captured.enclosed = { type:enclosureType, enclosed:true, value:token };
 							token = '';
 						}
+						else { captured.enclosed = { type:enclosureType, enclosed:true, value:'' }; } // XXX
 						captured.closer = { type:'closer', value:enclosure.closer };
 						i += enclosure.closer.length - 1; 
 						ii = syntax.enclosures.length;  // don't check for more enclosure matches until next character in code
