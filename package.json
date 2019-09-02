@@ -1,6 +1,6 @@
 {
   "name": "retokenizer",
-  "version": "1.4.4",
+  "version": "1.5.0",
   "description": "Converts text into tokens, as defined by provided syntax; Supports recursive sub-syntaxes, regular expressions, and more..",
   "main": "retokenizer.js",
   "scripts": {

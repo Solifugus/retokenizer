@@ -1,8 +1,9 @@
 #!/usr/bin/nodejs
 
-tokenizer = require('./retokenizer.js');
+// Get the Retokenizer class
+var {Retokenizer} = require('./retokenizer');
 
-// Contract Logic Syntax 
+// Define a Syntax
 var syntax = {
 	splitters:[
 	' ','\t','\n',
@@ -16,19 +17,25 @@ var syntax = {
 		{ opener:'--', closer:'\n' }
 	]
 };
+
+// Recursive Enclosures in the Syntax are Valid and Useful, Too
 syntax.enclosures.push( { opener:'(', closer:')', syntax:syntax } );
 
+// Instantiate the Retokenizer class with the Syntax
+let tokenizer = new Retokenizer( syntax );
+
+// A Code Sample To Test..
 let code = '"abc" > "def" or ("xyz" <> "pqr")';
 console.log( 'Code:\n====================\n' + code + '====================' );
 
-// Simple array of mostly strings but also arrays for sub-syntaxes, and objects for regular expressions identified
+// Tokenize Flat and Simple.. 
 console.log( '\n--------------------\nSimple tokens (default):\n' )
-let tokens = tokenizer( code, syntax );
+let tokens = tokenizer.tokenize( code, syntax );
 console.log( JSON.stringify(tokens,null,'  ') );
 
-// All tokens are turned into objects with line numbers added -- future versions of retokenizer may add more attributes
+// Tokenize Rich and Condensed..
 console.log( '\n--------------------\nRich tokens (default):\n' )
-//tokens = tokenizer( code, syntax, { rich:true, condense:true } );
-tokens = tokenizer( code, syntax, { rich:true, condense:true, betweens:'throw' } );
+tokenizer = new Retokenizer( syntax, { rich:true, condense:true } );
+tokens = tokenizer.tokenize( code );
 console.log( JSON.stringify(tokens,null,'  ') );
 

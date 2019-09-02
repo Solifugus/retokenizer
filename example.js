@@ -1,6 +1,6 @@
 #!/usr/bin/nodejs
 
-tokenizer = require('./retokenizer.js');
+var {Retokenizer} = require('./retokenizer');
 
 // Contract Logic Syntax 
 syntax = {
@@ -25,17 +25,14 @@ syntax = {
 		}
 	]
 };
+let tokenizer = new Retokenizer( syntax, { condense:true } );
 
 let code = "/* some comment */\nif (plan = premium)\nthen (services = 509 * 301 )\n";
 console.log( 'Code:\n====================\n' + code + '====================' );
 
 // Simple array of mostly strings but also arrays for sub-syntaxes, and objects for regular expressions identified
 console.log( '\n--------------------\nSimple tokens (default):\n' )
-let tokens = tokenizer( code, syntax );
+let tokens = tokenizer.tokenize( code );
 console.log( JSON.stringify(tokens,null,'  ') );
 
-// All tokens are turned into objects with line numbers added -- future versions of retokenizer may add more attributes
-console.log( '\n--------------------\nRich tokens (default):\n' )
-tokens = tokenizer( code, syntax, { rich:true, condense:true } );
-console.log( JSON.stringify(tokens,null,'  ') );
 

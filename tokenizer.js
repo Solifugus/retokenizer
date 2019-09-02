@@ -19,7 +19,7 @@
  *        = false, splitters are caseful
  */
 
-class Retokenizer {
+class Tokenizer {
 	constructor( syntax, options = {} ) {
 		this.syntax = syntax;
 		this.option = {
@@ -28,12 +28,10 @@ class Retokenizer {
 			condense: false,   // false = all tokens in flat array; true = tokens recursed as per enclosure level
 			caseful:  false,   // casefully match splitters, e.g. IF .. THEN, If .. Then, or if .. then
 		}
-		for( let option in options ) { this.option[option] = options[option]; }
+		for( option in options ) { this.option[option] = options[option]; }
 	}
 
-	tokenize( code ) {
-		let syntax = this.syntax;  // for convenience
-
+	tokenize( code, syntax ) {
 		if( typeof code !== 'string') { console.error('Tokenizer ERROR: code not given as a string but rather: ' + JSON.stringify(code)); return; }
 		if( typeof syntax !== 'object') { console.error('Tokenizer ERROR: syntax not given as an object but rather: ' + JSON.stringify(code)); return; }
 		if( syntax.splitters === undefined ) { syntax.splitters = []; } else { syntax.splitters.sort(function(a,b){ return b.length - a.length; }); }
@@ -53,7 +51,6 @@ class Retokenizer {
 		for( let i = 0; i < code.length; i += 1 ) {
 
 			// Found Enclosure Opener?
-			let skipToNextChar = false;  // After any token is found, begin i loop again with next code character
 			if( syntax.enclosures === undefined ) syntax.enclosures = [];
 			for( let ii = 0; ii < syntax.enclosures.length; ii += 1 ) {
 				let enclosure = syntax.enclosures[ii];
@@ -76,11 +73,11 @@ class Retokenizer {
 
 							// Going past end of code then stop -- closer is missing. 
 							if( i === code.length ) {
-								this.warning('A opening ' + enclosure.opener + ' was never closed with an expected ' + enclosure.closer + '.');
+								this.warning('A opening "' + enclosuer.opener + '" was never closed with a "' + enclosure.closer + '".');
 								break;
 							}
 							
-							// Skip any character escaped
+							// Skip anything escaped
 							if( code[i] === enclosure.escaper ) {
 								i += 1; // escape
 								continue;
@@ -88,10 +85,9 @@ class Retokenizer {
 
 							// If closer found, collecting is finished
 							if( code.substr(i,enclosure.closer.length).toLowerCase() === enclosure.closer.toLowerCase() ) {
-								i += enclosure.closer.length - 1;
-								this.pushToken(  { type:'enclosure', enclosure:{ opener:enclosure.opener, closer:enclosure.closer }, value:token }, tokens[depth] );
+								i += enclosure.closer.length;
+								this.pushToken(  { type:'enclosure', enclosure:enclosure, value:token }, tokens[depth] );
 								token = '';
-								skipToNextChar = true;
 								break;
 							}
 							
@@ -106,14 +102,9 @@ class Retokenizer {
 						enclosedIn = enclosure;  // enter the new enclosure
 						syntax = enclosedIn.syntax;          // convenience reference to the new enclosure's syntax 
 						if( syntax.enclosures === undefined ) syntax.enclosures = [];
-						i -= 1;
-						skipToNextChar = true;
 					}
 				}
 			} // end of syntax.enclosures loop..
-
-			// If Enclosure was Found then Start Processing Next Character in Code From the Top 
-			if( skipToNextChar ) continue;
 
 			// Found closer of current enclosure?  Then back out of recursion.. 
 			if( enclosedIn.closer !== undefined && code.substr(i,enclosedIn.closer.length).toLowerCase() === enclosedIn.closer.toLowerCase() ) {
@@ -123,16 +114,16 @@ class Retokenizer {
 				}
 
 				// Ensure position in code moved to after full length of the closer 
-				i += enclosedIn.opener.length - 1;
+				i += enclosedIn.opener.length;
 
 				// Move current depth of tokens collected into next level up..
 				enclosedTokens = tokens.pop();
 				depth -= 1;
 
 				// Put enclosedTokens into tokens[depth] -- either flat (if not condensed) else recursed (if condensed)
-				if( this.option.condense ) {
+				if( option.condense ) {
 					// Move tokens as single object -- TODO: not sure if this will include opener/closer
-					this.pushToken( { type:'enclosure', enclosure:{ opener:enclosedIn.opener, closer:enclosedIn.closer }, value:enclosedTokens }, tokens[depth] );
+					this.pushToken( { type:'enclosure', enclosure:enclosedIn, value:enclosedTokens }, tokens[depth] );
 				}
 				else {
 					// Move tokens flatly -- TODO:not sure if this will include opener/closer
@@ -143,14 +134,12 @@ class Retokenizer {
 
 				enclosedIn = recursions.pop();   // return to the old enclosedIn
 				syntax     = enclosedIn.syntax;  // convenience reference to the old enclosure's syntax
-				skipToNextChar = true;
 
 			}
-			if( skipToNextChar ) continue;
 
 
 			// Hit a splitter?
-			skipToNextChar = false;
+			let skipToNextChar = false;
 			for( var ii = 0; ii < syntax.splitters.length; ii += 1 ) {
 				var splitter = syntax.splitters[ii];
 				// If splitter is Regular Expresson string
@@ -200,7 +189,7 @@ class Retokenizer {
 		token.lineNo = (this.code.slice(0,c).match(/\n/g) || []).length;
 
 		// If token value is in removes, do not push 
-		if( this.syntax.removes !== undefined && this.syntax.removes.indexOf(token.value) !== -1 ) return; 
+		if( syntax.removes !== undefined && syntax.removes.indexOf(token.value) !== -1 ) return; 
 
 		// Keep (default), remove, or throw error on betweens found?
 		if( token.type === 'between' && this.option.betweens.toLowerCase() === 'throw' ) throw 'Unrecognized Syntax "' + token.value + '" at lineNo ' + lineNo + '.';
@@ -225,4 +214,29 @@ class Retokenizer {
 
 } // End of class
 
-module.exports = { Retokenizer:Retokenizer };
+let tokenizer = new Tokenizer();
+
+let syntax = {
+	name:'main',
+	splitters:['.',',','=','<>','>=','>','<=','<','and','or','not'],
+	removes:[' ','\t'],
+	enclosures:[
+		{ opener:'"', closer:'"', escaper:'\\' },
+		{ opener:'(', closer:')' },
+		//{ opener:'[', closer:']', syntax:{
+		//		name:'brackets',
+		//		splitters:['.',',','=','<>','>=','>','<=','<','and','or','not'],
+		//		removes:[' ','\t'],
+		//	}
+		//}
+	]
+};
+syntax.enclosures.push({ opener:'[', closer:']', syntax:syntax });
+let option = { condense:true };
+
+//code = 'company.user.account(356)balance';
+code = 'company.user[ one.two[ alpha.bravo.charlie ].three ].balance';
+
+let tokens = tokenizer.tokenize( code, syntax, option );
+console.log( JSON.stringify( tokens, null, '  ' ) );
+
