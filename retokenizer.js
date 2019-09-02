@@ -3,22 +3,6 @@
 // Copyright Matthew C. Tedder
 // LICENSED UNDER The GNU GPL Version 2 (See included LICENSE file)
 
-/* Options:
- *    rich
- *        = false (default), return tokens as simple strings
- *        = true, return tokens as richly detailed objects
- *    betweens
- *        = 'keep', return tokens of strings found between splitters.
- *        = 'remove', do not return tokens of strings found between splitter.
- *        = 'throw', throw an error for any strings found between splitters.
- *    condense
- *        = false (default), return three tokens for each enclosure (opener, enclosed, and closer)
- *        = true, return one token for each enclosure (adding opener and closer attributes to enclosed token, if rich)
- *    caseful
- *        = false (default), splitters are caseless
- *        = false, splitters are caseful
- */
-
 class Retokenizer {
 	constructor( syntax, options = {} ) {
 		this.syntax = syntax;
