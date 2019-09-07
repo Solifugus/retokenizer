@@ -2,6 +2,58 @@
 ===============================================================================
 Languages
 
+--------
+WhenThen
+
+	This language would be foundational to the Solinovan mesh system I have
+been developing (various experimental forms).  Each moment in the mesh (shared
+across all nodes, at 1/3rd of a second each) would pre-process conditions and
+post-process conversions -- all data and code stored in a meshed graph database
+system.
+
+When myCondition( ..condition.. ) 
+	"A" { ..conversion.. }
+	"B" { ..conversion.. }
+	Otherwise { ..conversion.. }
+
+	The above illustrates the structural elements of WhenThen.  Condition code
+goes within parenthesis.  Conversion code goes within curly braces.  The 
+keyword "When" marks the beginning of a condition-to-conversion statement, as
+where "myCondition" a name with which to refer to the particular condition.
+Continuing, the quoted "A" and "B" are expectable resulst from the condition
+mapped to a conversion for each and another conversion in case of the condition
+is otherwise..
+
+	The idea of a condition's possible results being only true or false is 
+expanded here to accomodate more kinds of logic than just boolean.  A
+condition produces a categoric result with each moment, such as from among 
+true/false or from  among A, B, and C.  It evaluates the data as per the moment
+before.  Then, it executes the conversions thusly mapped to for each possible
+result.  Note that categoric and linear values may be used within a condition's
+logic and, being graph data, both categoric and linear values may be included
+among the attributes of the condition's results, even if the results themselves
+are purely categoric.
+
+	I am still not fully settled on the condition notation but developing and
+testing ideas regularly.  The objective is to be able to look spatially and
+temporally, in terms of specific data points as well as ranges.
+
+	A for the conversion notation, I am still not fully settled.  It involves
+setting values from the state of other values.  None of these operations 
+should take longer than a sixth of a second, in and of themselves (or at least
+that is the goal).
+
+	In both conditions and conversions, external resources are also accessible.
+However for conditions, reading from external sources is done through the 
+graph while, for conversions, the "writing" or calling of external resources
+may be done through the local host machine, if and how it allows such services.
+For example, a RESTFul web service may be called from a conversion having its
+result return to a specific place within the graph that is then pickup by a
+condition coded to evaluate it.
+
+
+
+
 ----
 BURP -- Variable Consultant 
 
@@ -33,3 +85,5 @@ Repetition of Moments:
 	(1) Visible text flows in, forming the moment's Input.
 	(2) Where output conditions are matched in Input, Internal, and/or Output,
         trigger assignments to Internal and/or Output. 
+
+
